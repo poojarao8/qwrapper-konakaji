@@ -9,7 +9,7 @@ try:
     import cupy as np
 except ModuleNotFoundError:
     print("cupy not found. numpy is used.")
-import numpy as np
+#import numpy as np
 
 try:
     import cudaq
