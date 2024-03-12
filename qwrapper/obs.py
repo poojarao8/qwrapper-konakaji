@@ -9,10 +9,11 @@ try:
     import cupy as np
 except ModuleNotFoundError:
     print("cupy not found. numpy is used.")
-    import numpy as np
+import numpy as np
 
 try:
     import cudaq
+    cudaq.set_target('nvidia')
 except ImportError: 
     print("cudaq import error")
 except ModuleNotFoundError:
@@ -197,8 +198,13 @@ class Hamiltonian(Obs):
                     return future.get().expectation_z() + self._identity
 
                 return Future(do_get)
-
-            return cudaq.observe(qc.kernel, self._cudaq_obs).expectation_z() + self._identity
+             
+            print (qc.kernel)
+            print ('Paulis:', qc.listOfPaulis)
+            if (qc.listOfPaulis == []):
+                qc.listOfPaulis = ['I' * qc.numQubits]
+            print ('Paulis:', qc.listOfPaulis)
+            return cudaq.observe(qc.kernel, self._cudaq_obs, qc.listOfPaulis).expectation_z() + self._identity
 
         if isinstance(qc, QulacsCircuit):
             if self._qulacs_obs is None:

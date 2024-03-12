@@ -4,6 +4,7 @@ from qulacs.gate import PauliRotation
 
 try:
     import cudaq
+    cudaq.set_target('nvidia')
 except ImportError: 
     print("cudaq import error")
 except ModuleNotFoundError:
@@ -25,8 +26,12 @@ class PauliTimeEvolution(Operator):
     def add_circuit(self, qc: QWrapper):
         if isinstance(qc, CUDAQuantumCircuit):
             if self.pauli.p_string != len(self.pauli.p_string) * 'I':
-                qc.gatesToApply.append(lambda qarg: qc.kernel.exp_pauli(
-                    self.pauli.sign * self.t, qarg, self.pauli.p_string))
+                print ('exp_pauli for', self.pauli.p_string, self.t, self.pauli.sign)
+                #qc.gatesToApply.append(lambda qarg: qc.kernel.exp_pauli(
+                #    self.pauli.sign * self.t, qarg, self.pauli.p_string))
+                qc.listOfPaulis.append([self.pauli.p_string])
+                qc.gatesToApply.append(lambda qarg, pArg: qc.kernel.exp_pauli(
+                    self.pauli.sign * self.t, qarg, self.paulisArg[pArg]))
             return
 
         if not isinstance(qc, QulacsCircuit) or not self.cachable:

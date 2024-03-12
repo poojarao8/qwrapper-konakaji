@@ -9,6 +9,7 @@ import random, math, numpy as np
 
 try:
     import cudaq
+    cudaq.set_target('nvidia')
 except ImportError: 
     print("cudaq import error")
 except ModuleNotFoundError:
@@ -581,9 +582,10 @@ class CUDAQuantumCircuit(QWrapper):
     def __init__(self, nqubit):
         super().__init__(nqubit)
         self.gatesToApply = []
+        self.listOfPaulis = []
         # print("Create CUDAQ Circuit")
         self.numQubits = nqubit
-        self.kernel = cudaq.make_kernel()
+        self.kernel, self.paulisArg = cudaq.make_kernel(list[cudaq.pauli_word])
         self.qarg = self.kernel.qalloc(self.numQubits)
 
     def copy(self):
