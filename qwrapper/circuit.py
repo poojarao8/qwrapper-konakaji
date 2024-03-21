@@ -9,6 +9,7 @@ import random, math, numpy as np
 
 try:
     import cudaq
+    cudaq.set_target('nvidia')
 except ImportError: 
     print("cudaq import error")
 except ModuleNotFoundError:
@@ -581,10 +582,13 @@ class CUDAQuantumCircuit(QWrapper):
     def __init__(self, nqubit):
         super().__init__(nqubit)
         self.gatesToApply = []
-        # print("Create CUDAQ Circuit")
+        self.listOfPaulis = []
+        self.listOfPaulisCoeff = []
+        print("Create CUDAQ Circuit")
         self.numQubits = nqubit
-        self.kernel = cudaq.make_kernel()
+        self.kernel, self.paulisCoeff, self.paulisArg = cudaq.make_kernel(list[float], list[cudaq.pauli_word])
         self.qarg = self.kernel.qalloc(self.numQubits)
+        self.pauliFlag = False
 
     def copy(self):
         raise NotImplementedError('cuda quantum copy - not supported.')
@@ -595,7 +599,9 @@ class CUDAQuantumCircuit(QWrapper):
 
     def x(self, index):
         # print("x {}".format(index))
-        self.gatesToApply.append(lambda qarg: self.kernel.x(qarg[index]))
+        print ("Adding x gates")
+        self.kernel.x(self.qarg[index])
+        #self.gatesToApply.append(lambda qarg: self.kernel.x(qarg[index]))
 
     def y(self, index):
         # print("y {}".format(index))

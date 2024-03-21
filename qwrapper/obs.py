@@ -4,15 +4,18 @@ from qwrapper.circuit import QWrapper
 from qwrapper.util import QUtil
 from qulacs import QuantumState, Observable
 from qwrapper.circuit import QulacsCircuit, CUDAQuantumCircuit
+import time
 
-try:
-    import cupy as np
-except ModuleNotFoundError:
-    print("cupy not found. numpy is used.")
-    import numpy as np
+#try:
+#    import cupy as np
+#except ModuleNotFoundError:
+#    print("cupy not found. numpy is used.")
+#    import numpy as np
+import numpy as np
 
 try:
     import cudaq
+    cudaq.set_target('nvidia')
 except ImportError: 
     print("cudaq import error")
 except ModuleNotFoundError:
@@ -186,8 +189,13 @@ class Hamiltonian(Obs):
         if isinstance(qc, CUDAQuantumCircuit):
             if self._cudaq_obs is None:
                 self._cudaq_obs = self._build_cudaq_obs()
-            for op in qc.gatesToApply:
-                op(qc.qarg)
+            #pauliIndex = 0
+            #for op in qc.gatesToApply:
+            #    if (type(op) == list):
+            #        op[1](qc.qarg, pauliIndex)
+            #        pauliIndex = pauliIndex + 1
+            #    else:
+            #        op(qc.qarg)
 
             if 'parallelObserve' in kwargs and kwargs['parallelObserve']:
                 print("Async exec on qpu {}".format(kwargs['qpu_id']))
@@ -198,12 +206,22 @@ class Hamiltonian(Obs):
 
                 return Future(do_get)
 
-            return cudaq.observe(qc.kernel, self._cudaq_obs).expectation_z() + self._identity
+            #print (qc.kernel)
+            #print ('Paulis:', qc.listOfPaulis, "Gates:", qc.gatesToApply)
+            start = time.time()
+            tmp = cudaq.observe(qc.kernel, self._cudaq_obs, qc.listOfPaulisCoeff, qc.listOfPaulis).expectation_z() + self._identity
+            print ('obs CUDAQ:', time.time() - start)
+            return tmp
+
+#            return cudaq.observe(qc.kernel, self._cudaq_obs).expectation_z() + self._identity
 
         if isinstance(qc, QulacsCircuit):
             if self._qulacs_obs is None:
                 self._qulacs_obs = self._build_qulacs_obs()
-            return self._qulacs_obs.get_expectation_value(qc.get_state()) + self._identity
+            start = time.time()
+            tmp = self._qulacs_obs.get_expectation_value(qc.get_state()) + self._identity
+            print ('obs Qulacs:', time.time() - start)
+            return tmp
         if self._matrix is None:
             matrix = np.diag(np.zeros(pow(2, self.nqubit), dtype=np.complex128))
             for h, p in zip(self._hs, self._paulis):
