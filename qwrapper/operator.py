@@ -4,7 +4,7 @@ from qulacs.gate import PauliRotation
 
 try:
     import cudaq
-    cudaq.set_target('nvidia')
+    #cudaq.set_target('nvidia')
 except ImportError: 
     print("cudaq import error")
 except ModuleNotFoundError:

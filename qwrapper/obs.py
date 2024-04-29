@@ -15,7 +15,7 @@ import numpy as np
 
 try:
     import cudaq
-    cudaq.set_target('nvidia')
+    #cudaq.set_target('nvidia')
 except ImportError: 
     print("cudaq import error")
 except ModuleNotFoundError:
@@ -199,8 +199,9 @@ class Hamiltonian(Obs):
 
             if 'parallelObserve' in kwargs and kwargs['parallelObserve']:
                 print("Async exec on qpu {}".format(kwargs['qpu_id']))
-                future = cudaq.observe_async(qc.kernel, self._cudaq_obs, qpu_id=kwargs['qpu_id'])
-
+                start = time.time()
+                future = cudaq.observe_async(qc.kernel, self._cudaq_obs, qc.listOfPaulisCoeff, qc.listOfPaulis, qpu_id=kwargs['qpu_id'])
+                print ('async obs CUDAQ:', time.time() - start)
                 def do_get():
                     return future.get().expectation_z() + self._identity
 
